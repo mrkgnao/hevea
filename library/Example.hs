@@ -171,14 +171,14 @@ roman = unary "mathrm"
 infixr 4 $=
 
 (&=) :: Doc -> (Doc, Doc) -> Writer [Doc] ()
-(&=) comment (name, expansion) = tell
-      ["%%%" <+> comment $$ newcommand0 name expansion $$ ""]
+(&=) comment (name, expansion) =
+  tell ["%%%" <+> comment $$ newcommand0 name expansion $$ ""]
 
 infixr 3 &=
 
 (!=) :: Doc -> (Doc, Doc) -> Writer [Doc] ()
-(!=) comment (name, expansion) = tell
-      ["%%%" <+> comment $$ declareMathOperator name expansion $$ ""]
+(!=) comment (name, expansion) =
+  tell ["%%%" <+> comment $$ declareMathOperator name expansion $$ ""]
 
 infixr 3 !=
 
@@ -240,5 +240,4 @@ defs =
 
 -- | An example function.
 main :: IO ()
-main =
-  print defs
+main = writeFile "/home/mrkgnao/code/generated-preamble.tex" (render defs)
