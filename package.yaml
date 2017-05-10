@@ -32,7 +32,7 @@ extra-source-files:
 - package.yaml
 - README.md
 - stack.yaml
-ghc-options: -Wall
+# ghc-options: -Wall
 github: mrkgnao/hevea
 library:
   dependencies:
@@ -40,6 +40,7 @@ library:
   - template-haskell
   - haskell-src-meta
   - pretty
+  - mtl
   source-dirs: library
 license: MIT
 maintainer: Soham Chowdhury
