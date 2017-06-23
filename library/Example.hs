@@ -4,6 +4,7 @@ module Example (main) where
 
 import           Data.Monoid                 ((<>))
 import           Text.PrettyPrint            hiding ((<>))
+import Data.Time
 
 import           Control.Monad.Identity
 import           Control.Monad.Writer.Strict
@@ -17,6 +18,10 @@ unary c arg = backed (c <> braces arg)
 newcommand0 :: Doc -> Doc -> Doc
 newcommand0 name expansion =
   backed "newcommand" <> braces (backed name) <> braces expansion
+
+newcommand1 :: Doc -> (Doc -> Doc) -> Doc
+newcommand1 name expansion =
+  backed "newcommand" <> braces (backed name) <> brackets "1" <> braces (expansion "#1")
 
 declareMathOperator :: Doc -> Doc -> Doc
 declareMathOperator name expansion =
@@ -99,48 +104,39 @@ joinSets a b = a $$ "" $$ b
 -- Actual symbol sets
 ----------------------------------------------------------
 
+mkSetGen fullname tag l u = joinSets (u fullname tag) (l fullname tag)
+mkSet fullname tag exc = mkSetGen fullname tag lowerSet' (upperSet exc)
+mkSet' fullname tag  = mkSetGen fullname tag lowerSet' upperSet'
+
 singles =
-  [ frakturSingles
-  , mathscrSingles
-  , blackboardBoldSingles
-  , sansSerifSingles
-  , mathcalSingles
+  [ frakturSet
+  , mathscrSet
+  , blackboardBoldSet
+  , boldSet
+  , sansSerifSet
+  , mathcalSet
   ]
-    where
-    frakturSingles = joinSets frakturUpper frakturLower
-      where
-        frakturUpper = upperSet ["i"] "mathfrak" "f"
-        frakturLower = lowerSet' "mathfrak" "f"
+  where
+    sansSerifSet      = mkSet  "mathsf"   "r" ["m", "q"]
+    frakturSet        = mkSet  "mathfrak" "f" ["i"]
+    mathcalSet        = mkSet  "mathcal"  "h" ["t"]
+    mathscrSet        = mkSet' "mathscr"  "k"
 
-    mathscrSingles = joinSets mathscrUpper mathscrLower
-      where
-        mathscrUpper = upperSet' "mathscr" "k"
-        mathscrLower = lowerSet' "mathscr" "k"
-
-    blackboardBoldSingles = upperSet ["f"] "mathbb" "b"
-
-    sansSerifSingles = joinSets sfUpper sfLower
-      where
-        sfUpper = upperSet ["m", "q"] "sf" "r"
-        sfLower = lowerSet' "sf" "r"
-
-    mathcalSingles = joinSets mathcalUpper mathcalLower
-      where
-        mathcalUpper = upperSet ["t"] "mathcal" "h"
-        mathcalLower = lowerSet' "mathcal" "h"
+    blackboardBoldSet = upperSet ["f"] "mathbb" "B"
+    boldSet           = upperSet ["f"] "mathbf" "b"
 
 
 mathrmify :: Doc -> Doc
-mathrmify = braces . unary "mathrm"
+mathrmify = unary "mathrm"
 
 hat :: Doc -> Doc
-hat = braces . unary "hat"
+hat = unary "hat"
 
 gamma' :: Doc
-gamma' = braces $ backed "Gamma"
+gamma' = backed "Gamma"
 
 gamma :: Doc
-gamma = braces $ backed "gamma"
+gamma = backed "gamma"
 
 caret :: Doc
 caret = "^"
@@ -154,7 +150,7 @@ mathcal :: Doc -> Doc
 mathcal = unary "mathcal"
 
 bold :: Doc -> Doc
-bold = unary "mathbb"
+bold = unary "mathbf"
 
 sans :: Doc -> Doc
 sans = unary "mathsf"
@@ -220,6 +216,7 @@ general =
     "Kernel"        != "kker"  $= "ker"
     "Automorphisms" != "aut"   $= "Aut"
     "Endomorphisms" != "eend"  $= "End"
+    "Spectrum of a ring" != "spec"  $= "Spec"
 
   where
     infixr 3 &&=
@@ -240,4 +237,11 @@ defs =
 
 -- | An example function.
 main :: IO ()
-main = writeFile "/home/mrkgnao/code/generated-preamble.tex" (render defs)
+main = do
+  let
+    path = "/home/mrkgnao/code/tex/dfat/generated-preamble.tex"
+    write = writeFile path
+    append = appendFile path
+
+  getCurrentTime >>= (write . (\t -> "%%% Generated at " <> t <> "\n\n") . show)
+  append (render defs)
