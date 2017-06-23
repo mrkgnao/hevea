@@ -37,6 +37,7 @@ github: mrkgnao/hevea
 library:
   dependencies:
   - base
+  - time
   - template-haskell
   - haskell-src-meta
   - pretty
